@@ -1,6 +1,7 @@
 import streamlit as st
 import preprocessor
 import helper
+import  matplotlib.pyplot as plt
 
 st.sidebar.title('Whatsapp Chat Analyzer')
 
@@ -24,17 +25,46 @@ if uploaded_file is not None:
         col1, col2, col3, col4 = st.columns(4, gap="large")
 
         with col1:
-            st.header('Msg Count')
-            st.title(message_count)
+            st.subheader('Msg Count')
+            st.subheader(message_count)
 
         with col2:
-            st.header('Words Count')
-            st.title(words_count)
+            st.subheader('Words Count')
+            st.subheader(words_count)
 
         with col3:
-            st.header('Media Count')
-            st.title(media_count)
+            st.subheader('Media Count')
+            st.subheader(media_count)
 
         with col4:
-            st.header('URL Count')
-            st.title(urls_count)
+            st.subheader('URL Count')
+            st.subheader(urls_count)
+
+
+        if selected_user == 'Overall':
+            st.subheader('Most Active Users')
+            x, percent_df = helper.fetch_most_active_users(df)
+
+            col1, col2 = st.columns(2, gap="large")
+
+            with col1:
+                fig, ax = plt.subplots()
+                ax.bar(x.index, x.values, color='green')
+                plt.xticks(rotation='vertical')
+                st.pyplot(fig)
+
+            with col2:
+                st.dataframe(percent_df)
+
+
+        df_wc = helper.create_word_cloud(selected_user, df)
+        fig, ax = plt.subplots()
+        ax.imshow(df_wc)
+        st.pyplot(fig)
+
+
+        most_common_df = helper.most_common_words(selected_user, df)
+        fig, ax = plt.subplots()
+        ax.bar(most_common_df[0], most_common_df[1])
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
