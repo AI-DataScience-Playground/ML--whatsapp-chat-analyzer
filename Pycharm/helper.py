@@ -2,6 +2,7 @@ import pandas as pd
 from urlextract import URLExtract
 from wordcloud import WordCloud
 from collections import Counter
+import emoji
 
 def fetch_stats(user, df):
     if user != 'Overall':
@@ -28,10 +29,28 @@ def fetch_most_active_users(df):
 
 
 def create_word_cloud(selected_user, df):
-    if(selected_user != 'Overall'):
+    def remove_stopwords(message):
+        words = []
+        for word in message.split():
+            if word not in stopwords:
+                words.append(word)
+        return " ".join(words)
+
+    stopwords = open('stop_hinglish.txt', 'r')
+    stopwords = stopwords.read()
+
+    if (selected_user != 'Overall'):
         df = df[df['users'] == selected_user]
+
+    temp_df = df[(df['users'] != 'group_notification')]
+    temp_df = temp_df[(temp_df['messages'].str.strip() != "<Media omitted>")]
+    temp_df = temp_df[(temp_df['messages'].str.strip() != 'This message was deleted')]
+    temp_df = temp_df[(temp_df['messages'].str.strip() != 'You deleted this message')]
+    temp_df['messages'] = temp_df['messages'].apply(remove_stopwords)
+
+
     wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
-    df_wc = wc.generate(df['messages'].str.cat(sep=' '))
+    df_wc = wc.generate(temp_df['messages'].str.cat(sep=' '))
     return df_wc
 
 
@@ -54,6 +73,32 @@ def most_common_words(selected_user, df):
                 words.append(word)
 
     return pd.DataFrame(Counter(words).most_common(20))
+
+
+def emojis_stats(selected_user, df):
+    if (selected_user != 'Overall'):
+        df = df[df['users'] == selected_user]
+
+    emojis = []
+    for message in df['messages']:
+        emojis.extend([c for c in message if emoji.is_emoji(c)])
+
+    emoji_df = pd.DataFrame(Counter(emojis).most_common(20))
+    return emoji_df
+
+
+def get_monthly_timeline(selected_user, df):
+    if (selected_user != 'Overall'):
+        df = df[df['users'] == selected_user]
+
+    timeline = df.groupby(['year', 'month_num', 'month']).count()['messages'].reset_index()
+    time = []
+    for i in range(timeline.shape[0]):
+        time.append(timeline['month'][i] + '-' + str(timeline['year'][i]))
+
+    timeline['time'] = time
+    return timeline
+
 
 
 def get_words_count(df):
