@@ -3,6 +3,8 @@ import preprocessor
 import helper
 import  matplotlib.pyplot as plt
 
+
+
 st.sidebar.title('Whatsapp Chat Analyzer')
 
 uploaded_file = st.sidebar.file_uploader("Choose a file")
@@ -48,6 +50,32 @@ if uploaded_file is not None:
         plt.xticks(rotation='vertical')
         st.pyplot(fig)
 
+        timeline = helper.get_daily_timeline(selected_user, df)
+        st.title('Daily Stats')
+        fig, ax = plt.subplots()
+        ax.plot(timeline['only_date'], timeline['messages'], color='green')
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
+
+        st.title('Activity Map')
+        col1, col2 = st.columns(2, gap='large')
+
+        with col1:
+            weekly_activity_df = helper.get_weekly_activity_map(selected_user, df)
+            st.subheader('Most busy day')
+            fig, ax = plt.subplots()
+            ax.bar(weekly_activity_df['day_name'], weekly_activity_df['count'], color='black')
+            plt.xticks(rotation='vertical')
+            st.pyplot(fig)
+
+        with col2:
+            monthly_activity_map = helper.get_monthly_activity_map(selected_user, df)
+            st.subheader('Most busy month')
+            fig, ax = plt.subplots()
+            ax.bar(monthly_activity_map.index, monthly_activity_map.values, color='black')
+            plt.xticks(rotation='vertical')
+            st.pyplot(fig)
+
 
         if selected_user == 'Overall':
             st.subheader('Most Active Users')
@@ -79,12 +107,5 @@ if uploaded_file is not None:
 
         #emoji analysis
         emoji_df = helper.emojis_stats(selected_user, df)
-        col1, col2 = st.columns(2, gap="large")
+        st.dataframe(emoji_df)
 
-        with col1:
-            st.dataframe(emoji_df)
-
-        with col2:
-            fig, ax = plt.subplots()
-            ax.pie(emoji_df[1], labels=emoji_df[0])
-            st.pyplot(fig)

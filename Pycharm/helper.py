@@ -99,6 +99,26 @@ def get_monthly_timeline(selected_user, df):
     timeline['time'] = time
     return timeline
 
+def get_daily_timeline(selected_user, df):
+    if(selected_user != 'Overall'):
+        df = df[df['users'] == selected_user]
+
+    timeline = df.groupby(['only_date']).count().reset_index()
+    return timeline
+
+
+def get_weekly_activity_map(selected_user, df):
+    if(selected_user != 'Overall'):
+        df = df[df['users'] == selected_user]
+
+    weekly_activity_df = df['day_name'].value_counts().reset_index()
+    return weekly_activity_df
+
+def get_monthly_activity_map(selected_user, df):
+    if (selected_user != 'Overall'):
+        df = df[df['users'] == selected_user]
+
+    return df['month'].value_counts()
 
 
 def get_words_count(df):
